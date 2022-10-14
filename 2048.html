@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Page Title</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+  <script src='main.js'></script>
+</head>
+<style>
+  .cont {
+      width: 290px;
+      height: 290px;
+      background: #eee;
+      border: solid 2px #aaaaaa;
+      margin: 20px auto;
+      border-radius: 10px;
+      position: relative;
+  }
+
+  .back-slide {
+      width: 60px;
+      height: 60px;
+      background: pink;
+      border-radius: 10px;
+      position: absolute;
+  }
+
+  .fore-slide {
+      width: 60px;
+      height: 60px;
+      background: #f55;
+      border-radius: 10px;
+      position: absolute;
+      color: #fff;
+      font-size: 40px;
+      line-height: 60px;
+      text-align: center
+  }
+
+  .mask {
+      text-align: center;
+      width: 290px;
+      height: 290px;
+      position: absolute;
+      top: 0;
+      left: 0;
+      background: rgba(0, 0, 0, .3);
+      z-index: 999;
+      display: none;
+  }
+
+  .mask h1 {
+      text-align: center;
+  }
+
+  .mask .btn {
+      width: 100px;
+      height: 40px;
+      border: 0;
+      margin-top: 20px;
+      border-radius: 10px;
+      font-size: 18px;
+  }
+
+  .mask p {
+      font-size: 30px;
+      font-weight: bold;
+      color: red;
+  }
+
+  .grade {
+      margin: 20px auto;
+      text-align: center;
+  }
+</style>
+</head>
+
+<body>
+<div class="cont">
+  <div class="mask">
+      <h1>游戏结束</h1>
+      <button class="btn">重新开始</button>
+      <p class="grade1">总分:0</p>
+  </div>
+
+</div>
+<p class="grade">总分:0</p>
+
+<script>
+
+  function Slide() {
+      // 外层大盒子
+      this.cont = document.querySelector(".cont");
+      //游戏结束盒子
+      this.mask = document.querySelector(".mask");
+      //实时显示的总分盒子
+      this.g = document.querySelector(".grade");
+      // 游戏结束显示的总分盒子
+      this.overg = document.querySelector(".grade1");
+      //重新开始按钮
+      this.btn = document.querySelector(".btn");
+      // 主二维数组，存放数据
+      this.pos = [];
+      //用于判断每次按键后，是否有变化
+      this.myarr = [];
+      //用于将二维行列转换
+      this.myarr1 = [];
+      // 创建背景小方块
+      this.createBack();
+      //触发键盘事件
+      this.keyDown();
+      // 创建一个前景小方块，并重新渲染二维数组，显示所有前景小方块
+      this.createFore();
+      this.createFore();
+      //重新开始
+      this.restart();
+      //总分
+      this.grade = 0;
+  }
+  Slide.prototype = {
+      keyDown: function () {
+          document.onkeydown = function (e) {
+              //键盘按下后，判断按下了那个键，并触发相应移动方法
+              switch (e.keyCode) {
+                  case 37: this.leftmove(); break;
+                  case 38: this.upmove(); break;
+                  case 39: this.rightmove(); break;
+                  case 40: this.downmove(); break;
+              }
+              //将当前总分显示
+              this.g.innerHTML = "总分：" + this.grade;
+              // 调用游戏结束，进行判断，是否无路可走
+              this.gameover();
+
+
+          }.bind(this);
+      },
+      //游戏结束方法
+      gameover: function () {
+          // 获取所有前景小方块，等于16，证明以满，继续判断是否存在相邻方块相等的情况，如果没有，结束游戏
+          var foreSlide = document.querySelectorAll(".fore-slide");
+          var flag = 0;
+          if (foreSlide.length == 16) {
+              console.log(flag);
+              for (var i = 0; i < 4; i++) {
+                  for (var j = 0; j < 4; j++) {
+                      // this.pos[i][j]
+                      if (i == 0 && j == 0) {
+                          if (this.pos[i][j] === this.pos[i][j + 1] || this.pos[i][j] === this.pos[i + 1][j]) {
+                              flag = 1;
+
+                          }
+                      }
+                      if (i == 3 && j == 3) {
+                          if (this.pos[i][j] === this.pos[i][j - 1] || this.pos[i][j] === this.pos[i - 1][j]) {
+                              flag = 1;
+                          }
+                      }
+                      if (i == 0 && j == 3) {
+                          if (this.pos[i][j] === this.pos[i][j - 1] || this.pos[i][j] === this.pos[i + 1][j]) {
+                              flag = 1;
+                          }
+                      }
+                      if (i == 3 && j == 0) {
+                          if (this.pos[i][j] === this.pos[i][j + 1] || this.pos[i][j] === this.pos[i - 1][j]) {
+                              flag = 1;
+                          }
+                      }
+                      if (i == 0 && (j == 1 || j == 2)) {
+                          if (this.pos[i][j] === this.pos[i][j + 1] || this.pos[i][j] === this.pos[i + 1][j] || this.pos[i][j] === this.pos[i][j - 1]) {
+                              flag = 1;
+                          }
+                      }
+                      if (i == 3 && (j == 1 || j == 2)) {
+                          if (this.pos[i][j] === this.pos[i][j + 1] || this.pos[i][j] === this.pos[i - 1][j] || this.pos[i][j] === this.pos[i][j - 1]) {
+                              flag = 1;
+                          }
+                      }
+                      if (j == 0 && (i == 1 || i == 2)) {
+                          if (this.pos[i][j] === this.pos[i][j + 1] || this.pos[i][j] === this.pos[i + 1][j] || this.pos[i][j] === this.pos[i - 1][j]) {
+                              flag = 1;
+                          }
+                      }
+                      if (j == 3 && (i == 1 || i == 2)) {
+                          if (this.pos[i][j] === this.pos[i][j - 1] || this.pos[i][j] === this.pos[i + 1][j] || this.pos[i][j] === this.pos[i - 1][j]) {
+                              flag = 1;
+                          }
+                      }
+                  }
+              }
+              // 如果flag == 0，证明已经没有相邻相等的情况了，直接结束游戏，显示总分
+              if (flag == 0) {
+                  this.overg.innerHTML = "总分：" + this.grade;
+                  this.mask.style.display = "block";
+              }
+          }
+
+      },
+      // 用于左移和上移，将二维数组拆分为4个一维数组，从小到大进行判断与改值
+      getData: function (arr) {
+          var i, nextI, len, m;
+          len = arr.length;
+          for (i = 0; i < len; i += 1) {
+              nextI = -1;
+              for (m = i + 1; m < len; m++) {
+                  // 如果不为0，存到下一个中
+                  if (arr[m] !== 0) {
+                      nextI = m;
+                      break;
+                  }
+              }
+              if (nextI !== -1) {
+                  // 如果当前为0 ，下一个有值，则将两个互换
+                  if (arr[i] === 0) {
+                      arr[i] = arr[nextI];
+                      arr[nextI] = 0;
+                      i -= 1;
+                      //如果当前与下一个相等，将当前×2，下一个值为0，并将当前值加到总分上去
+                  } else if (arr[i] === arr[nextI]) {
+                      arr[i] = arr[i] * 2;
+                      this.grade += arr[i];
+                      arr[nextI] = 0;
+                  }
+              }
+          }
+      },
+      // 与getData类似，这是用于右移和下移，从大到小进行判断
+      getData1: function (arr) {
+          var i, nextI, len, m;
+          len = arr.length;
+          for (i = 3; i >= 0; i--) {
+              nextI = -1;
+              for (m = i - 1; m >= 0; m--) {
+                  if (arr[m] !== 0) {
+                      nextI = m;
+                      break;
+                  }
+              }
+              if (nextI !== -1) {
+                  if (arr[i] === 0) {
+                      arr[i] = arr[nextI];
+                      arr[nextI] = 0;
+                      i += 1;
+                  } else if (arr[i] === arr[nextI]) {
+                      arr[i] = arr[i] * 2;
+                      this.grade += arr[i];
+                      arr[nextI] = 0;
+                  }
+              }
+          }
+      },
+      // 左移方法
+      leftmove: function () {
+          // 将当前主二维数组的值存起来，最后与主二维数组判断是否有变化，没有变化则不进行任何操作
+          this.myarr = [];
+          for (var i = 0; i < 4; i++) {
+              this.myarr.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.myarr[i].push(this.pos[i][j]);
+              }
+          }
+          // 将二维数组分为4个一维数组进行判断与操作，从小到大
+          for (var i = 0; i < 4; i++) {
+              this.getData(this.pos[i]);
+          }
+          // 与按键之前进行比较，如果有不同，则证明移动了，在调用createFore方法，创建一个新的随机前景小方块
+          for (var i = 0; i < 4; i++) {
+              for (var j = 0; j < 4; j++) {
+                  if (this.myarr[i][j] != this.pos[i][j]) {
+                      this.createFore();
+                      i = 5;
+                      j = 5;
+                      break;
+                  }
+              }
+          }
+      },
+      // 右移方法
+      rightmove: function () {
+           // 将当前主二维数组的值存起来，最后与主二维数组判断是否有变化，没有变化则不进行任何操作
+          this.myarr = [];
+          for (var i = 0; i < 4; i++) {
+              this.myarr.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.myarr[i].push(this.pos[i][j]);
+              }
+          }
+          // 将二维数组分为4个一维数组进行判断与操作，从大到小
+          for (var i = 0; i < 4; i++) {
+              this.getData1(this.pos[i]);
+          }
+          // 与按键之前进行比较，如果有不同，则证明移动了，在调用createFore方法，创建一个新的随机前景小方块
+          for (var i = 0; i < 4; i++) {
+              for (var j = 0; j < 4; j++) {
+                  if (this.myarr[i][j] != this.pos[i][j]) {
+                      this.createFore();
+                      i = 5;
+                      j = 5;
+                      break;
+                  }
+              }
+          }
+      },
+      upmove: function () {
+           // 将当前主二维数组的值存起来，最后与主二维数组判断是否有变化，没有变化则不进行任何操作
+          this.myarr = [];
+          for (var i = 0; i < 4; i++) {
+              this.myarr.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.myarr[i].push(this.pos[i][j]);
+              }
+          }
+          // 将主数组行列转换存入myarr1中
+          this.myarr1 = [];
+          for (var i = 0; i < 4; i++) {
+              this.myarr1.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.myarr1[i].push(this.pos[j][i]);
+              }
+          }
+          // 对myarr1进行判断与操作，从小到大
+          for (var i = 0; i < 4; i++) {
+              this.getData(this.myarr1[i]);
+          }
+          // 清空主数组，将myarr1的值一一存入主数组中
+          this.pos = [];
+          for (var i = 0; i < 4; i++) {
+              this.pos.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.pos[i].push(this.myarr1[j][i]);
+              }
+          }
+          // 与按键之前进行比较，如果有不同，则证明移动了，在调用createFore方法，创建一个新的随机前景小方块
+          for (var i = 0; i < 4; i++) {
+              for (var j = 0; j < 4; j++) {
+                  if (this.myarr[i][j] != this.pos[i][j]) {
+                      this.createFore();
+                      i = 5;
+                      j = 5;
+                      break;
+                  }
+              }
+          }
+      },
+      downmove: function () {
+           // 将当前主二维数组的值存起来，最后与主二维数组判断是否有变化，没有变化则不进行任何操作
+          this.myarr = [];
+          for (var i = 0; i < 4; i++) {
+              this.myarr.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.myarr[i].push(this.pos[i][j]);
+              }
+          }
+          //不想复制了，与上类似
+          this.myarr1 = [];
+          for (var i = 0; i < 4; i++) {
+              this.myarr1.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.myarr1[i].push(this.pos[j][i]);
+              }
+          }
+          //不想复制了，与上类似
+          for (var i = 0; i < 4; i++) {
+              this.getData1(this.myarr1[i]);
+          }
+          //不想复制了，与上类似
+          this.pos = [];
+          for (var i = 0; i < 4; i++) {
+              this.pos.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.pos[i].push(this.myarr1[j][i]);
+              }
+          }
+          //不想复制了，与上类似
+          for (var i = 0; i < 4; i++) {
+              for (var j = 0; j < 4; j++) {
+                  if (this.myarr[i][j] != this.pos[i][j]) {
+                      this.createFore();
+                      i = 5;
+                      j = 5;
+                      break;
+                  }
+              }
+          }
+      },
+      createBack: function () {
+          // 生成背景色
+          for (var i = 0; i < 4; i++) {
+              this.pos.push([])
+              for (var j = 0; j < 4; j++) {
+                  this.pos[i].push(0);
+                  var div = document.createElement("div");
+                  div.className = `back-slide back-slide-${i}-${j}`;
+                  this.cont.appendChild(div)
+                  div.style.left = j * (60 + 10) + 10 + "px";
+                  div.style.top = i * (60 + 10) + 10 + "px";
+              }
+          }
+      },
+      createFore: function () {
+          //创建一个前景小方块，
+          while (true) {
+              this.x = random(0, 3);
+              this.y = random(0, 3);
+              if (this.pos[this.x][this.y] == 0) {
+                  break;
+              }
+          }
+          //前景小方块内容在2，4之间随机
+          this.pos[this.x][this.y] = Math.random() > 0.5 ? 2 : 4;
+          // 获取所有前景小方块，并移除
+          var foreSlide = document.querySelectorAll(".fore-slide");
+          for (var k = 0; k < foreSlide.length; k++) {
+              foreSlide[k].remove();
+          }
+          //对当前主二维数组中不等于0的位置创建前景色小方块
+          for (var i = 0; i < this.pos.length; i++) {
+              for (var j = 0; j < this.pos[i].length; j++) {
+                  if (this.pos[i][j] != 0) {
+                      var div = document.createElement("div");
+                      div.className = `fore-slide fore-slide-${i}-${j}`;
+                      this.cont.appendChild(div);
+                      div.innerHTML = this.pos[i][j];
+                      // 内容过大时，字体可能会过大，溢出盒子，将字体调小一点
+                      if (this.pos[i][j] > 100) {
+                          div.style.fontSize = "35px";
+                      }
+                      div.style.left = j * (60 + 10) + 10 + "px"
+                      div.style.top = i * (60 + 10) + 10 + "px"
+                  }
+              }
+          }
+      },
+      //重新开始
+      restart: function () {
+          // 单击重新开始按钮后，将主二维数组清0，总分清0，重新调用两次创建前景方块
+          this.btn.onclick = function () {
+              this.grade = 0;
+              for (var i = 0; i < 4; i++) {
+                  for (var j = 0; j < 4; j++) {
+                      this.pos[i][j] = 0;
+                  }
+              }
+              this.g.innerHTML = "总分：" + this.grade;
+              this.mask.style.display = "none";
+              this.createFore();
+              this.createFore();
+          }.bind(this);
+      }
+  }
+  function random(max, min) {
+      return Math.round(Math.random() * (max - min) + min);
+  }
+  var s = new Slide;
+</script>
+
+</body>
+
+</html>
